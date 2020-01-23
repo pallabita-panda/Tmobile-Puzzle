@@ -3,11 +3,25 @@
  * This is only a minimal backend to get started.
  **/
 import { Server } from 'hapi';
+import { stockplugin } from './app/plugin/stock-plugin'
+import CatboxMemory from '@hapi/catbox-memory';
 
 const init = async () => {
   const server = new Server({
     port: 3333,
-    host: 'localhost'
+    host: 'localhost',
+    cache: [{
+      name: 'stock_cache',
+      provider: {
+        constructor: CatboxMemory,
+        options: {
+          partition: 'stock_cached_data',
+          host: 'localhost',
+          port: 3333,
+          database: 0,
+        }
+      }
+    }]
   });
 
   server.route({
@@ -17,6 +31,13 @@ const init = async () => {
       return {
         hello: 'world'
       };
+    }
+  });
+
+  await server.register({
+    plugin: stockplugin,
+    options: {
+      cache: 'stock_cache'
     }
   });
 
